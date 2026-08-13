@@ -1,0 +1,6 @@
+{
+  "name": "NOVA Hair Atelier",
+  "description": "An elegant Point of Sale (POS) and scheduling applet for high-end boutique hair salons.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

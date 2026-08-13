@@ -1,0 +1,34 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&family=Nunito+Sans:ital,opsz,wght@0,6..12,200..1000;1,6..12,200..1000&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-sans: "Nunito Sans", system-ui, sans-serif;
+  --font-accent: "Caveat", cursive;
+
+  /* Custom luxury earth salon colors */
+  --color-nova-beige: #f6eedf;
+  --color-nova-choco: #432c1a;
+  --color-nova-sand: #cca78c;
+  --color-nova-light: #f9f9f9;
+}
+
+body {
+  background-color: var(--color-nova-beige);
+  color: var(--color-nova-choco);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-nova-sand);
+  border-radius: 10px;
+}
