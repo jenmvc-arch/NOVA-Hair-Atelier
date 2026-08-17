@@ -25,9 +25,10 @@ import {
   Heart,
   Award,
   Crown,
-  Gem
+  Gem,
+  Trash2
 } from 'lucide-react';
-import { ClientRecord, Transaction } from '../types';
+import { ClientRecord, ReminderRule, Transaction } from '../types';
 
 interface ClientsViewProps {
   existingClients: ClientRecord[];
@@ -36,6 +37,7 @@ interface ClientsViewProps {
   onBookForClient: (name: string, phone: string) => void;
   transactions: Transaction[];
   setExistingClients: React.Dispatch<React.SetStateAction<ClientRecord[]>>;
+  reminderRules: ReminderRule[];
 }
 
 export function getLoyaltyTier(points: number) {
@@ -132,6 +134,7 @@ export default function ClientsView({
   onBookForClient,
   transactions,
   setExistingClients,
+  reminderRules,
 }: ClientsViewProps) {
   // Local search query for extra flexibility
   const [localSearch, setLocalSearch] = useState('');
@@ -246,23 +249,7 @@ export default function ClientsView({
   const clientReminders = useMemo(() => {
     if (!selectedClient) return { lastService: "", detectedCategory: "General", recommendedReminders: [], manualReminders: [] };
 
-    // Load custom rules from localStorage
-    let rules = [];
-    const cached = localStorage.getItem('nova_reminder_rules');
-    if (cached) {
-      try {
-        rules = JSON.parse(cached);
-      } catch (e) { }
-    }
-    if (!rules || rules.length === 0) {
-      rules = [
-        { id: 'hc_monthly', category: 'Hair Cut', timeline: 'Monthly', purpose: 'Remind for haircut service', message: "Hi {name}! It's been about a month since your last haircut service at NOVA Hair Atelier. We'd love to help you refresh and maintain your perfect shape. Reply here to secure your preferred slot! 💇‍♀️" },
-        { id: 'tr_nextday', category: 'Treatment', timeline: 'Next Day', purpose: 'Follow Up', message: "Hi {name}! We hope your hair and scalp are feeling absolutely amazing after your treatment yesterday at NOVA Hair Atelier! How is your hair feeling? Reply here if you have any questions! ✨" },
-        { id: 'tr_monthly', category: 'Treatment', timeline: 'Monthly', purpose: 'Remind to come back', message: "Hi {name}! Your hair is due for its monthly nourishing treatment to keep it resilient and glowing. Your session at NOVA Hair Atelier is ready for booking! Reply to secure your spot. 🌿" },
-        { id: 'cl_nextday', category: 'Coloring', timeline: 'Next Day', purpose: 'Follow Up', message: "Hi {name}! We hope you love your new color from yesterday! Remember to wash with cool water to keep it vibrant. Let us know how you're loving it! 🎨" },
-        { id: 'cl_monthly', category: 'Coloring', timeline: 'Monthly', purpose: 'Touch Up and return', message: "Hi {name}! It's been about a month since your color session at NOVA Hair Atelier. We recommend a root touch-up or toner glaze to keep it absolutely stunning! Reply here to book. 💖" }
-      ];
-    }
+    const rules = reminderRules || [];
 
     // Determine what last service they had
     let lastServiceName = "Premium Styling & Cut";
@@ -308,7 +295,7 @@ export default function ClientsView({
         isRecommended: false
       }))
     };
-  }, [selectedClient, clientServiceHistory]);
+  }, [selectedClient, clientServiceHistory, reminderRules]);
 
   // Handle adding new client
   const handleAddClient = (e: React.FormEvent) => {
@@ -450,6 +437,30 @@ export default function ClientsView({
     setTimeout(() => {
       setHairNotesSavedSuccess(false);
     }, 2500);
+  };
+
+  const handleDeleteClient = (client: ClientRecord) => {
+    const confirmed = confirm(
+      `Delete ${client.name} from Client Management? This removes their client profile, notes, birthday, loyalty points, and CRM details.`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setExistingClients((prev) =>
+      prev.filter((c) => !(c.phone === client.phone && c.name === client.name))
+    );
+
+    if (
+      selectedClient &&
+      selectedClient.phone === client.phone &&
+      selectedClient.name === client.name
+    ) {
+      setSelectedClient(null);
+      setIsEditingProfile(false);
+      setActiveCrmTab('overview');
+    }
   };
 
   // Trigger clipboard copy alert
@@ -642,7 +653,8 @@ export default function ClientsView({
               <p className="text-[11px] mt-1 text-nova-choco/30">Reset search or register them as a new member profile.</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <>
+              <div className="hidden overflow-x-auto md:block">
               <table className="w-full text-left border-collapse font-sans">
                 <thead>
                   <tr className="border-b border-nova-sand/15 text-[10px] font-extrabold text-nova-choco/50 uppercase tracking-wider">
@@ -761,6 +773,13 @@ export default function ClientsView({
                             >
                               Profile CRM
                             </button>
+                            <button
+                              onClick={() => handleDeleteClient(client)}
+                              className="p-1.5 rounded-xl hover:bg-red-50 text-red-500 hover:text-red-700 transition-all"
+                              title="Delete Client"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -768,18 +787,122 @@ export default function ClientsView({
                   })}
                 </tbody>
               </table>
-            </div>
+              </div>
+              <div className="space-y-3 md:hidden">
+              {filteredClients.map((client, idx) => {
+                const bdayMonth = isBirthdayThisMonth(client.birthday);
+                return (
+                  <div
+                    key={`mobile-${idx}`}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => {
+                      setSelectedClient(client);
+                      setIsEditingProfile(false);
+                      setActiveCrmTab('overview');
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        setSelectedClient(client);
+                        setIsEditingProfile(false);
+                        setActiveCrmTab('overview');
+                      }
+                    }}
+                    className={`rounded-2xl border p-4 shadow-sm transition-colors ${
+                      bdayMonth
+                        ? 'border-amber-300/70 bg-amber-50/40'
+                        : 'border-nova-sand/15 bg-white hover:bg-nova-beige/15'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <h3 className="truncate text-sm font-bold text-nova-choco">{client.name}</h3>
+                          {bdayMonth && (
+                            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-amber-800">
+                              Birthday
+                            </span>
+                          )}
+                        </div>
+                        <p className="mt-1 flex items-center gap-1.5 font-mono text-[11px] text-nova-choco/50">
+                          <Phone className="h-3 w-3" />
+                          {client.phone}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleDeleteClient(client);
+                        }}
+                        className="flex min-h-10 min-w-10 items-center justify-center rounded-full text-red-500 hover:bg-red-50"
+                        aria-label={`Delete ${client.name}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+
+                    <div className="mt-4 grid grid-cols-3 gap-2 border-y border-nova-sand/10 py-3 text-center">
+                      <div>
+                        <span className="block text-[9px] font-extrabold uppercase tracking-wider text-nova-choco/40">Visits</span>
+                        <span className="mt-1 block font-mono text-sm font-bold text-nova-choco">{client.visits}</span>
+                      </div>
+                      <div>
+                        <span className="block text-[9px] font-extrabold uppercase tracking-wider text-nova-choco/40">Spend</span>
+                        <span className="mt-1 block font-mono text-sm font-bold text-nova-choco">
+                          RM {client.spend.toFixed(0)}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="block text-[9px] font-extrabold uppercase tracking-wider text-nova-choco/40">Points</span>
+                        <span className="mt-1 block font-mono text-sm font-bold text-amber-700">{client.points || 0}</span>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                      <span className="flex items-center gap-1.5 text-[10px] font-semibold text-nova-choco/60">
+                        <CalendarDays className="h-3.5 w-3.5 text-nova-sand" />
+                        {client.birthday || 'Birthday not configured'}
+                      </span>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onSelectClientForPOS(client.name, client.phone);
+                          }}
+                          className="min-h-10 rounded-full bg-nova-choco px-3 text-[10px] font-bold text-white"
+                        >
+                          POS
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onBookForClient(client.name, client.phone);
+                          }}
+                          className="min-h-10 rounded-full bg-nova-sand/20 px-3 text-[10px] font-bold text-nova-choco"
+                        >
+                          Book
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+              </div>
+            </>
           )}
         </section>
       </div>
 
       {/* Floating Customer CRM Portal Overlay Modal */}
       {selectedClient && (
-        <div className="fixed inset-0 bg-stone-900/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-2xl w-full border border-nova-sand/15 shadow-2xl animate-scale-in flex flex-col overflow-hidden max-h-[85vh]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 p-2 backdrop-blur-md sm:p-4">
+          <div className="flex max-h-[calc(100dvh-1rem)] w-full max-w-2xl flex-col overflow-hidden rounded-[2rem] border border-nova-sand/15 bg-white shadow-2xl animate-scale-in sm:max-h-[85vh]">
             
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-nova-sand/15 bg-stone-50">
+            <div className="flex items-center justify-between gap-3 border-b border-nova-sand/15 bg-stone-50 p-4 md:p-6">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-nova-sand/10 flex items-center justify-center text-nova-sand shrink-0">
                   <Users className="w-5.5 h-5.5" />
@@ -791,15 +914,25 @@ export default function ClientsView({
                   <p className="text-xs font-mono text-nova-choco/50 mt-0.5">{selectedClient.phone}</p>
                 </div>
               </div>
-              <button
-                onClick={() => {
-                  setSelectedClient(null);
-                  setIsEditingProfile(false);
-                }}
-                className="p-1.5 bg-stone-200/60 hover:bg-stone-200 rounded-full text-stone-600 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleDeleteClient(selectedClient)}
+                  className="flex items-center gap-1.5 bg-red-50 hover:bg-red-100 text-red-700 border border-red-100 font-bold text-[10px] px-3 py-1.5 rounded-full transition-colors"
+                  title="Delete Client"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Delete Client</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedClient(null);
+                    setIsEditingProfile(false);
+                  }}
+                  className="p-1.5 bg-stone-200/60 hover:bg-stone-200 rounded-full text-stone-600 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             {/* Premium Sticky Navigation Tabs */}
@@ -834,11 +967,11 @@ export default function ClientsView({
             </div>
 
             {/* Scrollable Modal Content */}
-            <div className="p-6 overflow-y-auto flex-grow max-h-[55vh]">
+            <div className="max-h-[calc(100dvh-8rem)] flex-grow overflow-y-auto p-4 md:max-h-[55vh] md:p-6">
               {activeCrmTab === 'overview' && (
                 <div className="space-y-5 animate-fade-in">
                   {/* Stats Badges Grid */}
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                     <div className="bg-amber-500/5 border border-amber-500/10 rounded-2xl p-4 text-center">
                       <span className="text-[9px] text-amber-800 uppercase tracking-widest block font-extrabold">Points Balance</span>
                       <span className="text-amber-600 font-serif font-black text-sm block mt-1 flex items-center justify-center gap-1">
@@ -954,7 +1087,7 @@ export default function ClientsView({
                     <div className="bg-nova-beige/10 border border-nova-sand/20 p-5 rounded-2xl space-y-4 text-xs font-semibold text-nova-choco">
                       <h4 className="font-extrabold text-nova-choco/80 uppercase tracking-wide text-[10px]">Modify Demographic Record</h4>
                       
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                           <label className="block text-[10px] text-nova-choco/50 uppercase tracking-wider mb-1">Full Name</label>
                           <input
@@ -975,7 +1108,7 @@ export default function ClientsView({
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                           <label className="block text-[10px] text-nova-choco/50 uppercase tracking-wider mb-1">Birthday Date</label>
                           <input
@@ -996,7 +1129,7 @@ export default function ClientsView({
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                           <label className="block text-[10px] text-nova-choco/50 uppercase tracking-wider mb-1">Customer Category</label>
                           <select
@@ -1088,7 +1221,7 @@ export default function ClientsView({
                         </button>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-6 text-xs font-semibold">
+                      <div className="grid grid-cols-1 gap-5 text-xs font-semibold sm:grid-cols-2 sm:gap-6">
                         <div>
                           <span className="block text-[10px] uppercase text-nova-choco/40 tracking-wider">Birthday Anniversary</span>
                           <span className="font-bold flex items-center gap-1.5 mt-1 text-stone-800">

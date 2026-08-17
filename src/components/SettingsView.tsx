@@ -61,6 +61,7 @@ interface SettingsViewProps {
   onUpdateEmployees: (employees: Employee[]) => void;
   initialSubTab?: 'payment' | 'sku' | 'company' | 'employee';
   onSubTabChange?: (subTab: 'payment' | 'sku' | 'company' | 'employee') => void;
+  persistenceStatus?: 'loading' | 'supabase' | 'local';
 }
 
 export default function SettingsView({
@@ -75,6 +76,7 @@ export default function SettingsView({
   onUpdateEmployees,
   initialSubTab,
   onSubTabChange,
+  persistenceStatus = 'local',
 }: SettingsViewProps) {
   // Settings view split states
   const [subTab, setSubTab] = useState<'payment' | 'sku' | 'company' | 'employee'>('payment');
@@ -398,7 +400,7 @@ export default function SettingsView({
   };
 
   return (
-    <div className="space-y-6 animate-fade-in font-sans">
+    <div className="space-y-5 font-sans animate-fade-in md:space-y-6">
       {/* Sub-tab Selection Buttons */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-nova-sand/15 pb-4 gap-4">
         <div>
@@ -409,8 +411,8 @@ export default function SettingsView({
       </div>
 
       {subTab === 'payment' && (
-        <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
-          <div className="bg-white rounded-3xl p-6 shadow-sm border border-nova-sand/15">
+        <div className="mx-auto max-w-2xl space-y-5 animate-fade-in md:space-y-6">
+          <div className="rounded-3xl border border-nova-sand/15 bg-white p-4 shadow-sm md:p-6">
             <h3 className="font-serif text-lg font-semibold mb-5 text-nova-choco flex items-center gap-2">
               <QrCode className="w-5 h-5 text-nova-sand stroke-[2.2px]" />
               <span>Manage Payment Methods</span>
@@ -557,7 +559,7 @@ export default function SettingsView({
 
               <button
                 type="submit"
-                className="w-full bg-nova-choco hover:bg-nova-choco/95 text-white py-3.5 rounded-full font-bold text-xs uppercase tracking-wider transition-all shadow-md hover:scale-[1.01] active:scale-[0.99] flex justify-center items-center gap-1.5"
+                className="flex min-h-12 w-full items-center justify-center gap-1.5 rounded-full bg-nova-choco py-3.5 text-xs font-bold uppercase tracking-wider text-white shadow-md transition-all hover:scale-[1.01] hover:bg-nova-choco/95 active:scale-[0.99]"
               >
                 <Check className="w-4 h-4 stroke-[2.5px]" />
                 <span>Save Payment Settings</span>
@@ -582,7 +584,7 @@ export default function SettingsView({
           </div>
 
           {/* Atelier Payment Methods Registry Card */}
-          <div className="bg-white rounded-3xl p-6 shadow-sm border border-nova-sand/15">
+          <div className="rounded-3xl border border-nova-sand/15 bg-white p-4 shadow-sm md:p-6">
             <h3 className="font-serif text-lg font-semibold mb-5 text-nova-choco flex items-center gap-2">
               <ListPlus className="w-5 h-5 text-nova-sand stroke-[2.2px]" />
               <span>Atelier Payment Methods Registry</span>
@@ -683,9 +685,9 @@ export default function SettingsView({
 
               <div className="divide-y divide-nova-sand/10 border border-nova-sand/15 rounded-2xl overflow-hidden bg-white">
                 {(localConfig.customMethods || []).map((method) => (
-                  <div key={method.id} className="p-3.5 flex items-center justify-between hover:bg-nova-light/20 transition-all duration-150">
+                  <div key={method.id} className="flex flex-col gap-3 p-3.5 transition-all duration-150 hover:bg-nova-light/20 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <span className="font-sans font-bold text-xs text-nova-choco">{method.name}</span>
                         <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
                           method.type === 'Cash' ? 'bg-green-100 text-green-800' :
@@ -711,7 +713,7 @@ export default function SettingsView({
                       <button
                         type="button"
                         onClick={() => handleToggleMethod(method.id)}
-                        className={`p-1.5 rounded-full transition-colors ${
+                        className={`flex min-h-10 min-w-10 items-center justify-center rounded-full transition-colors ${
                           method.isEnabled
                             ? 'bg-green-50 text-green-600 hover:bg-green-100'
                             : 'bg-red-50 text-red-400 hover:bg-red-100'
@@ -723,7 +725,7 @@ export default function SettingsView({
                       <button
                         type="button"
                         onClick={() => handleStartEditMethod(method)}
-                        className="p-1.5 bg-nova-light/40 hover:bg-nova-sand/15 text-nova-choco/75 rounded-full transition-colors"
+                        className="flex min-h-10 min-w-10 items-center justify-center rounded-full bg-nova-light/40 text-nova-choco/75 transition-colors hover:bg-nova-sand/15"
                         title="Edit Method"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
@@ -731,7 +733,7 @@ export default function SettingsView({
                       <button
                         type="button"
                         onClick={() => handleDeleteMethod(method.id)}
-                        className="p-1.5 bg-red-50 hover:bg-red-100 text-red-500 rounded-full transition-colors"
+                        className="flex min-h-10 min-w-10 items-center justify-center rounded-full bg-red-50 text-red-500 transition-colors hover:bg-red-100"
                         title="Delete Method"
                       >
                         <Trash className="w-3.5 h-3.5" />
@@ -748,26 +750,32 @@ export default function SettingsView({
             </div>
           </div>
 
-          {/* Supabase Storage Status Card */}
+          {/* Supabase Persistence Status Card */}
           <div className="bg-white rounded-3xl p-5 border border-nova-sand/15 shadow-sm flex items-start gap-3.5">
-            <div className={`p-2.5 rounded-2xl ${isSupabaseConfigured() ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
+            <div className={`p-2.5 rounded-2xl ${persistenceStatus === 'supabase' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
               <Cloud className="w-5 h-5 stroke-[2.2px]" />
             </div>
             <div className="text-xs text-nova-choco font-sans flex-grow">
               <div className="flex items-center justify-between">
                 <h4 className="font-bold tracking-wide text-sm font-serif flex items-center gap-1.5">
-                  <span>Supabase Cloud Storage Integration</span>
+                  <span>Supabase Cloud Save Integration</span>
                 </h4>
                 <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                  isSupabaseConfigured() ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                  persistenceStatus === 'supabase' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
                 }`}>
-                  {isSupabaseConfigured() ? 'Connected' : 'Local Fallback Mode'}
+                  {persistenceStatus === 'loading'
+                    ? 'Checking Sync'
+                    : persistenceStatus === 'supabase'
+                      ? 'Supabase Synced'
+                      : 'Local Fallback Mode'}
                 </span>
               </div>
               <p className="leading-relaxed opacity-80 mt-1">
-                {isSupabaseConfigured()
-                  ? 'Supabase storage is configured. File uploads (logos, catalog items, and QR codes) will automatically upload to Supabase Storage bucket.'
-                  : 'Supabase client is installed and ready. Provide VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your environment variables to enable cloud storage bucket uploads.'}
+                {persistenceStatus === 'supabase'
+                  ? 'Supabase is saving app data and file uploads. Appointments, POS tickets, transactions, clients, employees, catalog items, settings, reminders, logos, catalog images, and QR codes are synced to your project.'
+                  : isSupabaseConfigured()
+                    ? 'Supabase keys are configured, but the database save table may be missing or blocked by policy. Run the SQL setup script in Supabase, then refresh.'
+                    : 'Supabase client is installed and ready. Provide VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your environment variables to enable database saves and storage bucket uploads.'}
               </p>
             </div>
           </div>
@@ -786,8 +794,8 @@ export default function SettingsView({
       )}
 
       {subTab === 'sku' && (
-        <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
-          <div className="bg-white rounded-3xl p-6 shadow-sm border border-nova-sand/15 flex flex-col">
+        <div className="mx-auto max-w-2xl space-y-5 animate-fade-in md:space-y-6">
+          <div className="flex flex-col rounded-3xl border border-nova-sand/15 bg-white p-4 shadow-sm md:p-6">
             <h3 className="font-serif text-lg font-semibold mb-5 text-nova-choco flex items-center gap-2">
               <ListPlus className="w-5 h-5 text-nova-sand stroke-[2.2px]" />
               <span>Add Custom Catalog Item & SKU</span>
@@ -916,7 +924,7 @@ export default function SettingsView({
 
               <button
                 type="submit"
-                className="w-full bg-nova-choco hover:bg-nova-choco/95 text-white py-3.5 rounded-full font-bold text-xs uppercase tracking-wider transition-all shadow-md hover:scale-[1.01] active:scale-[0.99] flex justify-center items-center gap-1.5"
+                className="flex min-h-12 w-full items-center justify-center gap-1.5 rounded-full bg-nova-choco py-3.5 text-xs font-bold uppercase tracking-wider text-white shadow-md transition-all hover:scale-[1.01] hover:bg-nova-choco/95 active:scale-[0.99]"
               >
                 <Plus className="w-4 h-4 stroke-[2.5px]" />
                 <span>Add Catalog Item</span>
@@ -970,8 +978,8 @@ export default function SettingsView({
       )}
 
       {subTab === 'company' && (
-        <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
-          <div className="bg-white rounded-3xl p-6 shadow-sm border border-nova-sand/15">
+        <div className="mx-auto max-w-2xl space-y-5 animate-fade-in md:space-y-6">
+          <div className="rounded-3xl border border-nova-sand/15 bg-white p-4 shadow-sm md:p-6">
             <h3 className="font-serif text-lg font-semibold mb-5 text-nova-choco flex items-center gap-2">
               <Building className="w-5 h-5 text-nova-sand stroke-[2.2px]" />
               <span>Manage Company Profile</span>
@@ -1203,7 +1211,7 @@ export default function SettingsView({
 
               <button
                 type="submit"
-                className="w-full bg-nova-choco hover:bg-nova-choco/95 text-white py-3.5 rounded-full font-bold text-xs uppercase tracking-wider transition-all shadow-md hover:scale-[1.01] active:scale-[0.99] flex justify-center items-center gap-1.5"
+                className="flex min-h-12 w-full items-center justify-center gap-1.5 rounded-full bg-nova-choco py-3.5 text-xs font-bold uppercase tracking-wider text-white shadow-md transition-all hover:scale-[1.01] hover:bg-nova-choco/95 active:scale-[0.99]"
               >
                 <Check className="w-4 h-4 stroke-[2.5px]" />
                 <span>Save Company Profile</span>
@@ -1214,9 +1222,9 @@ export default function SettingsView({
       )}
 
       {subTab === 'employee' && (
-        <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
+        <div className="mx-auto max-w-4xl space-y-5 animate-fade-in md:space-y-6">
           {/* Form to Add Employee */}
-          <div className="bg-white rounded-3xl p-6 shadow-sm border border-nova-sand/15">
+          <div className="rounded-3xl border border-nova-sand/15 bg-white p-4 shadow-sm md:p-6">
             <h3 className="font-serif text-lg font-semibold mb-5 text-nova-choco flex items-center gap-2">
               <UserPlus className="w-5 h-5 text-nova-sand stroke-[2.2px]" />
               <span>Register New Employee</span>
@@ -1287,7 +1295,7 @@ export default function SettingsView({
               <div className="md:col-span-2 pt-2">
                 <button
                   type="submit"
-                  className="w-full bg-nova-choco hover:bg-nova-choco/95 text-white py-3 rounded-full font-bold text-xs uppercase tracking-wider transition-all shadow-md hover:scale-[1.01] active:scale-[0.99] flex justify-center items-center gap-1.5"
+                  className="flex min-h-12 w-full items-center justify-center gap-1.5 rounded-full bg-nova-choco py-3 text-xs font-bold uppercase tracking-wider text-white shadow-md transition-all hover:scale-[1.01] hover:bg-nova-choco/95 active:scale-[0.99]"
                 >
                   <Plus className="w-4 h-4 stroke-[2.5px]" />
                   <span>Register Employee</span>
@@ -1297,7 +1305,7 @@ export default function SettingsView({
           </div>
 
           {/* Active Employee List Table */}
-          <div className="bg-white rounded-3xl p-6 shadow-sm border border-nova-sand/15">
+          <div className="rounded-3xl border border-nova-sand/15 bg-white p-4 shadow-sm md:p-6">
             <h3 className="font-serif text-lg font-semibold mb-5 text-nova-choco flex items-center gap-2">
               <Briefcase className="w-5 h-5 text-nova-sand stroke-[2.2px]" />
               <span>Active Employee Registry ({employees.length})</span>
@@ -1308,7 +1316,56 @@ export default function SettingsView({
                 No employees registered. Use the form above to add your first employee.
               </div>
             ) : (
-              <div className="overflow-x-auto rounded-2xl border border-nova-sand/15">
+              <>
+                <div className="space-y-3 md:hidden">
+                {employees.map((emp) => (
+                  <article
+                    key={emp.id}
+                    className="rounded-2xl border border-nova-sand/15 bg-nova-light/25 p-4"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <h4 className="truncate font-serif text-base font-bold text-nova-choco">
+                          {emp.name}
+                        </h4>
+                        <p className="mt-1 text-xs font-semibold text-nova-sand">{emp.position}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveEmployee(emp.id)}
+                        className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-600 transition-colors hover:bg-red-100"
+                        title="Remove Employee"
+                        aria-label={`Remove ${emp.name}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="mt-4 grid grid-cols-2 gap-2 text-[11px]">
+                      <div className="rounded-xl bg-white/75 px-3 py-2">
+                        <span className="block text-[9px] font-bold uppercase tracking-wider text-nova-choco/40">
+                          Gender
+                        </span>
+                        <span className="mt-1 block font-semibold text-nova-choco/75">{emp.gender}</span>
+                      </div>
+                      <div className="rounded-xl bg-white/75 px-3 py-2">
+                        <span className="block text-[9px] font-bold uppercase tracking-wider text-nova-choco/40">
+                          Employment
+                        </span>
+                        <span className={`mt-1 inline-flex rounded-full px-2 py-1 text-[9px] font-extrabold uppercase tracking-wide ${
+                          emp.employmentType === 'Full-Time' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/50' :
+                          emp.employmentType === 'Part-Time' ? 'bg-blue-50 text-blue-700 border border-blue-200/50' :
+                          emp.employmentType === 'Contract' ? 'bg-amber-50 text-amber-700 border border-amber-200/50' :
+                          'bg-gray-50 text-gray-700 border border-gray-200/50'
+                        }`}>
+                          {emp.employmentType}
+                        </span>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+                </div>
+
+                <div className="hidden overflow-x-auto rounded-2xl border border-nova-sand/15 md:block">
                 <table className="w-full text-left text-xs text-nova-choco">
                   <thead>
                     <tr className="bg-nova-light/55 border-b border-nova-sand/15 text-[10px] font-extrabold uppercase tracking-wider text-nova-choco/50">
@@ -1349,7 +1406,8 @@ export default function SettingsView({
                     ))}
                   </tbody>
                 </table>
-              </div>
+                </div>
+              </>
             )}
           </div>
         </div>

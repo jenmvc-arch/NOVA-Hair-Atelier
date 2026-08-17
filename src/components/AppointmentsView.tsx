@@ -27,6 +27,8 @@ interface AppointmentsViewProps {
   onDeleteAppointment: (id: string) => void;
   stylists: Stylist[];
   catalog: CatalogItem[];
+  sentReminders: Record<string, boolean>;
+  onUpdateSentReminders: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
 }
 
 export default function AppointmentsView({
@@ -36,6 +38,8 @@ export default function AppointmentsView({
   onDeleteAppointment,
   stylists,
   catalog,
+  sentReminders,
+  onUpdateSentReminders,
 }: AppointmentsViewProps) {
   // We can track the active date context for scheduling
   const [currentDateStr, setCurrentDateStr] = useState('2026-07-01'); // matching local time
@@ -53,7 +57,6 @@ export default function AppointmentsView({
   const [selectedReminderAppt, setSelectedReminderAppt] = useState<Appointment | null>(null);
   const [reminderChannel, setReminderChannel] = useState<'WhatsApp' | 'SMS' | 'Email'>('WhatsApp');
   const [reminderText, setReminderText] = useState('');
-  const [sentReminders, setSentReminders] = useState<Record<string, boolean>>({});
 
   const openReminderModal = (appt: Appointment) => {
     setSelectedReminderAppt(appt);
@@ -76,7 +79,7 @@ export default function AppointmentsView({
     e.preventDefault();
     if (!selectedReminderAppt) return;
     
-    setSentReminders(prev => ({
+    onUpdateSentReminders(prev => ({
       ...prev,
       [selectedReminderAppt.id]: true
     }));
@@ -204,10 +207,10 @@ export default function AppointmentsView({
   }, []);
 
   return (
-    <section className="h-full flex gap-8 animate-fade-in font-sans">
+    <section className="flex h-full flex-col gap-5 font-sans animate-fade-in md:gap-8 xl:flex-row">
       {/* Left: Schedule Column */}
-      <div className="w-3/5 flex flex-col min-h-[500px]">
-        <div className="bg-white rounded-3xl p-6 flex-grow flex flex-col shadow-sm border border-nova-sand/15">
+      <div className="flex min-h-0 w-full flex-col xl:min-h-[500px] xl:w-3/5">
+        <div className="flex flex-grow flex-col rounded-3xl border border-nova-sand/15 bg-white p-4 shadow-sm md:p-6">
           {/* Schedule Header */}
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-3">
@@ -310,11 +313,11 @@ export default function AppointmentsView({
                               </div>
 
                               {/* Interactive Actions within scheduled item */}
-                              <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <div className="flex items-center gap-1.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
                                 <button
                                   type="button"
                                   onClick={() => openReminderModal(appt)}
-                                  className="bg-white hover:bg-nova-sand/10 text-nova-choco border border-nova-sand/35 font-bold text-[10px] px-2.5 py-1 rounded-full uppercase tracking-wider flex items-center gap-1 shadow-sm transition-all cursor-pointer"
+                                  className="flex min-h-10 items-center gap-1 rounded-full border border-nova-sand/35 bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-nova-choco shadow-sm transition-all hover:bg-nova-sand/10"
                                   title="Send Client Reminder"
                                 >
                                   <Bell className="w-3 h-3 text-nova-sand stroke-[2.5px]" />
@@ -323,7 +326,7 @@ export default function AppointmentsView({
                                 <button
                                   type="button"
                                   onClick={() => onCheckOutAppointment(appt)}
-                                  className="bg-nova-sand hover:bg-nova-sand/90 text-nova-choco font-bold text-[10px] px-2.5 py-1 rounded-full uppercase tracking-wider flex items-center gap-1 shadow-sm transition-all cursor-pointer"
+                                  className="flex min-h-10 items-center gap-1 rounded-full bg-nova-sand px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-nova-choco shadow-sm transition-all hover:bg-nova-sand/90"
                                   title="Checkout Client"
                                 >
                                   <CheckCircle className="w-3 h-3 stroke-[2.5px]" />
@@ -332,7 +335,7 @@ export default function AppointmentsView({
                                 <button
                                   type="button"
                                   onClick={() => onDeleteAppointment(appt.id)}
-                                  className="text-red-500 hover:bg-red-50 p-1 rounded-full transition-colors cursor-pointer"
+                                  className="flex min-h-10 min-w-10 items-center justify-center rounded-full p-1 text-red-500 transition-colors hover:bg-red-50"
                                   title="Cancel Appointment"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
@@ -364,7 +367,7 @@ export default function AppointmentsView({
                 </div>
 
                 {/* Grid Cells */}
-                <div className="grid grid-cols-7 grid-rows-5 gap-1.5 border-t border-nova-sand/15 pt-2 flex-grow max-h-[380px] min-h-[320px]">
+                <div className="grid min-h-[280px] max-h-[380px] flex-grow grid-cols-7 grid-rows-5 gap-1 border-t border-nova-sand/15 pt-2 sm:gap-1.5">
                   {monthCalendarDays.map((cell, idx) => {
                     const dayAppts = appointments.filter(
                       (appt) => appt.date === cell.dateStr && !appt.checkedOut
@@ -418,8 +421,8 @@ export default function AppointmentsView({
       </div>
 
       {/* Right: Book New Appointment Side Form */}
-      <div className="w-2/5 flex flex-col">
-        <div className="bg-white rounded-3xl p-6 shadow-sm border border-nova-sand/15">
+      <div className="flex w-full flex-col xl:w-2/5">
+        <div className="rounded-3xl border border-nova-sand/15 bg-white p-4 shadow-sm md:p-6">
           <h3 className="font-serif text-lg font-semibold mb-5 text-nova-choco flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-nova-sand" />
             <span>Book New Appointment</span>
@@ -460,7 +463,7 @@ export default function AppointmentsView({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label className="block text-[11px] font-bold mb-1.5 text-nova-choco/70 uppercase tracking-wide">
                   Date

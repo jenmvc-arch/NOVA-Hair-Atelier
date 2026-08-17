@@ -143,19 +143,19 @@ export default function DashboardView({
   }, [dPath, svgPoints]);
 
   return (
-    <section className="flex flex-col gap-8 animate-fade-in font-sans">
+    <section className="flex flex-col gap-5 font-sans animate-fade-in md:gap-8">
       {/* Header Controls */}
-      <div className="flex justify-between items-end">
+      <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-end">
         <div>
-          <h2 className="font-serif text-2xl font-bold mb-1 text-nova-choco">Salon Analytics</h2>
+          <h2 className="mb-1 font-serif text-2xl font-bold text-nova-choco">Salon Analytics</h2>
           <p className="text-sm text-nova-choco/60">Live performance metrics and boutique utilization reports.</p>
         </div>
-        <div className="flex bg-white rounded-full p-1 shadow-sm border border-nova-sand/20">
+        <div className="flex w-full rounded-full border border-nova-sand/20 bg-white p-1 shadow-sm sm:w-auto">
           {(['Today', 'Week', 'Month'] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTimeframe(t)}
-              className={`px-5 py-1.5 rounded-full text-xs font-bold transition-all duration-300 ${
+              className={`min-h-10 flex-1 rounded-full px-4 py-1.5 text-xs font-bold transition-all duration-300 sm:flex-none sm:px-5 ${
                 timeframe === t
                   ? 'bg-nova-sand text-nova-choco shadow-sm'
                   : 'text-nova-choco/60 hover:text-nova-choco hover:bg-nova-beige/25'
@@ -168,9 +168,9 @@ export default function DashboardView({
       </div>
 
       {/* Top Dynamic KPIs Row (Bento Style) */}
-      <div className="grid grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 md:gap-6">
         {/* KPI 1: Total Revenue */}
-        <div className="bg-white rounded-3xl p-6 shadow-sm border border-nova-sand/15 hover:scale-[1.01] hover:shadow-md transition-all duration-300 flex flex-col justify-between h-40">
+        <div className="flex h-36 flex-col justify-between rounded-3xl border border-nova-sand/15 bg-white p-5 shadow-sm transition-all duration-300 hover:scale-[1.01] hover:shadow-md md:h-40 md:p-6">
           <div className="flex justify-between items-start">
             <span className="text-xs font-bold text-nova-choco/60 uppercase tracking-wider">Total Revenue</span>
             <div className="p-2 rounded-full bg-green-50 text-green-600">
@@ -188,7 +188,7 @@ export default function DashboardView({
         </div>
 
         {/* KPI 2: Appointments */}
-        <div className="bg-white rounded-3xl p-6 shadow-sm border border-nova-sand/15 hover:scale-[1.01] hover:shadow-md transition-all duration-300 flex flex-col justify-between h-40">
+        <div className="flex h-36 flex-col justify-between rounded-3xl border border-nova-sand/15 bg-white p-5 shadow-sm transition-all duration-300 hover:scale-[1.01] hover:shadow-md md:h-40 md:p-6">
           <div className="flex justify-between items-start">
             <span className="text-xs font-bold text-nova-choco/60 uppercase tracking-wider">Appointments</span>
             <div className="p-2 rounded-full bg-nova-beige text-nova-sand">
@@ -206,7 +206,7 @@ export default function DashboardView({
         </div>
 
         {/* KPI 3: Retail Sales */}
-        <div className="bg-white rounded-3xl p-6 shadow-sm border border-nova-sand/15 hover:scale-[1.01] hover:shadow-md transition-all duration-300 flex flex-col justify-between h-40">
+        <div className="flex h-36 flex-col justify-between rounded-3xl border border-nova-sand/15 bg-white p-5 shadow-sm transition-all duration-300 hover:scale-[1.01] hover:shadow-md md:h-40 md:p-6">
           <div className="flex justify-between items-start">
             <span className="text-xs font-bold text-nova-choco/60 uppercase tracking-wider">Retail Sales</span>
             <div className="p-2 rounded-full bg-amber-50 text-amber-600">
@@ -224,7 +224,7 @@ export default function DashboardView({
         </div>
 
         {/* KPI 4: Avg Ticket Size */}
-        <div className="bg-nova-sand rounded-3xl p-6 shadow-sm border border-nova-sand/15 hover:scale-[1.01] hover:shadow-md transition-all duration-300 flex flex-col justify-between h-40 text-nova-choco relative overflow-hidden">
+        <div className="relative flex h-36 flex-col justify-between overflow-hidden rounded-3xl border border-nova-sand/15 bg-nova-sand p-5 text-nova-choco shadow-sm transition-all duration-300 hover:scale-[1.01] hover:shadow-md md:h-40 md:p-6">
           {/* subtle gold accent layer */}
           <div className="absolute -top-10 -right-10 w-24 h-24 bg-white/20 rounded-full blur-2xl"></div>
           <div className="flex justify-between items-start z-10">
@@ -245,10 +245,10 @@ export default function DashboardView({
       </div>
 
       {/* Main Graph Area */}
-      <div className="grid grid-cols-3 gap-6">
-        <div className="col-span-2 flex flex-col gap-6">
+      <div className="grid grid-cols-1 gap-4 md:gap-6 xl:grid-cols-3">
+        <div className="col-span-1 flex flex-col gap-4 md:gap-6 xl:col-span-2">
           {/* Revenue Line Chart */}
-          <div className="bg-white rounded-3xl p-6 shadow-sm border border-nova-sand/15 flex flex-col">
+          <div className="flex flex-col rounded-3xl border border-nova-sand/15 bg-white p-4 shadow-sm md:p-6">
             <div className="flex justify-between items-center mb-5">
               <h3 className="font-serif text-base font-semibold text-nova-choco">Revenue Trends ({timeframe})</h3>
               <span className="text-[11px] font-bold text-nova-choco/40 font-mono tracking-wider uppercase">
@@ -393,13 +393,13 @@ export default function DashboardView({
                 <h3 className="font-serif text-base font-semibold text-nova-choco">Detailed Sales Log</h3>
                 <p className="text-[11px] text-nova-choco/60">Comprehensive register of all processed tickets and customer spend indicators.</p>
               </div>
-              <div className="relative">
+              <div className="relative w-full sm:w-auto">
                 <input
                   type="text"
                   placeholder="Search client or Tx ID..."
                   value={salesSearch}
                   onChange={(e) => setSalesSearch(e.target.value)}
-                  className="px-4 py-2 pl-9 rounded-full border border-nova-sand/30 text-xs text-nova-choco bg-nova-light/45 focus:outline-none focus:border-nova-choco focus:bg-white focus:ring-1 focus:ring-nova-sand/30 transition-all w-48 font-medium"
+                  className="min-h-10 w-full rounded-full border border-nova-sand/30 bg-nova-light/45 px-4 py-2 pl-9 text-base font-medium text-nova-choco transition-all focus:border-nova-choco focus:bg-white focus:outline-none focus:ring-1 focus:ring-nova-sand/30 sm:w-48 sm:text-xs"
                 />
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-nova-choco/40">
                   <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -466,7 +466,7 @@ export default function DashboardView({
         {/* Leaderboard & utilization lists */}
         <div className="col-span-1 flex flex-col gap-6">
           {/* Top Services leaderboard */}
-          <div className="bg-white rounded-3xl p-5 shadow-sm border border-nova-sand/15 flex-grow">
+          <div className="flex-grow rounded-3xl border border-nova-sand/15 bg-white p-5 shadow-sm">
             <h3 className="text-xs font-bold mb-4 uppercase tracking-wider text-nova-choco/60 flex items-center gap-1.5">
               <Star className="w-4 h-4 text-nova-sand stroke-[2.2px]" />
               <span>Top Salon Services</span>

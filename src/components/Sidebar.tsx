@@ -47,7 +47,7 @@ export default function Sidebar({
   ];
 
   return (
-    <nav className="h-screen w-64 fixed left-0 top-0 bg-white shadow-sm z-40 flex flex-col p-6 gap-2 border-r border-nova-sand/10">
+    <nav className="fixed left-0 top-0 z-40 hidden h-screen w-64 flex-col gap-2 border-r border-nova-sand/10 bg-white p-6 shadow-sm md:flex">
       {/* Brand logo section */}
       <div className="mb-10 flex flex-col items-center justify-center pt-4 min-h-[130px]">
         {companyInfo?.logo ? (

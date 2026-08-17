@@ -7,159 +7,68 @@ import DashboardView from './components/DashboardView';
 import AppointmentsView from './components/AppointmentsView';
 import ClientsView from './components/ClientsView';
 import SettingsView from './components/SettingsView';
+import MobileNav from './components/MobileNav';
 import { CheckoutModal, InventoryModal, ReportsModal } from './components/Modals';
 
-import { 
-  INITIAL_CATALOG, 
-  INITIAL_STYLISTS, 
-  INITIAL_APPOINTMENTS, 
-  INITIAL_TRANSACTIONS 
-} from './data';
-import { CatalogItem, CartItem, Appointment, Transaction, PaymentConfig, CompanyInfo, Employee, Stylist, ClientRecord, PaymentMethodItem } from './types';
+import { INITIAL_STYLISTS } from './data';
+import { CatalogItem, CartItem, Appointment, Transaction, PaymentConfig, CompanyInfo, Employee, Stylist, ClientRecord, NovaAppState, NovaAppStateKey, PosState, ReminderRule } from './types';
+import { loadSupabaseState, readLocalState, saveSupabaseState, writeLocalState } from './lib/appState';
+
+type PersistenceStatus = 'loading' | 'supabase' | 'local';
+
+const EXCLUDED_DEMO_EMPLOYEE_IDS = ['emp_1', 'emp_2', 'emp_3', 'emp_4'];
+
+const sanitizeEmployees = (value: Employee[]): Employee[] => {
+  return Array.isArray(value)
+    ? value.filter(emp => !EXCLUDED_DEMO_EMPLOYEE_IDS.includes(emp.id))
+    : [];
+};
+
+const sanitizePaymentConfig = (value: PaymentConfig): PaymentConfig => {
+  const customMethods = Array.isArray(value.customMethods)
+    ? value.customMethods.filter(
+        (m: any) => !['pay_duitnow', 'pay_tng', 'pay_cash', 'pay_card'].includes(m.id)
+      )
+    : [];
+
+  return {
+    ...value,
+    customMethods,
+  };
+};
+
+const stylistsFromEmployees = (employees: Employee[], existingStylists: Stylist[] = INITIAL_STYLISTS): Stylist[] => {
+  return sanitizeEmployees(employees).map(emp => {
+    const existing = existingStylists.find(s => s.name === emp.name) || INITIAL_STYLISTS.find(s => s.name === emp.name);
+    return {
+      id: emp.id,
+      name: emp.name,
+      role: emp.position,
+      utilization: existing ? existing.utilization : Math.floor(Math.random() * 40) + 40,
+    };
+  });
+};
 
 export default function App() {
   // Main view navigation state
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [hasLoadedRemoteState, setHasLoadedRemoteState] = useState<boolean>(false);
+  const [persistenceStatus, setPersistenceStatus] = useState<PersistenceStatus>('loading');
 
   // Primary State Engines
-  const [catalog, setCatalog] = useState<CatalogItem[]>(INITIAL_CATALOG);
-  const [appointments, setAppointments] = useState<Appointment[]>(INITIAL_APPOINTMENTS);
-  const [transactions, setTransactions] = useState<Transaction[]>(INITIAL_TRANSACTIONS);
+  const [catalog, setCatalog] = useState<CatalogItem[]>(() => readLocalState('catalog'));
+  const [appointments, setAppointments] = useState<Appointment[]>(() => readLocalState('appointments'));
+  const [transactions, setTransactions] = useState<Transaction[]>(() => readLocalState('transactions'));
   
   // Clients profile stats state
-  const [existingClients, setExistingClients] = useState<ClientRecord[]>(() => {
-    const hasPurged = localStorage.getItem('nova_mock_data_purged_v2');
-    if (!hasPurged) {
-      localStorage.removeItem('nova_clients');
-      localStorage.setItem('nova_mock_data_purged_v2', 'true');
-    }
-
-    const cached = localStorage.getItem('nova_clients');
-    if (cached) {
-      try {
-        return JSON.parse(cached);
-      } catch (e) {
-        // ignore
-      }
-    }
-    
-    // Default seed clients to showcase CRM features, loyalty tiers and upcoming birthdays (July 2026)
-    return [
-      {
-        name: 'Vanessa Tan',
-        phone: '012-345-6789',
-        visits: 12,
-        spend: 1850.00,
-        points: 450,
-        birthday: '1995-07-12',
-        registeredAt: '2024-03-10',
-        customerCategory: 'Existing',
-        acquisitionSource: 'Instagram',
-        stylistNotes: 'Always prefers cold water wash. Loves ash-blonde tones and long layers.',
-        hairProfileNotes: 'Allergy: Sensitive to ammonia dyes. Loves tea on arrival.'
-      },
-      {
-        name: 'Marcus Lim',
-        phone: '011-889-2233',
-        visits: 4,
-        spend: 420.00,
-        points: 210,
-        birthday: '1992-07-28',
-        registeredAt: '2025-01-15',
-        customerCategory: 'Existing',
-        acquisitionSource: 'Facebook',
-        stylistNotes: 'Requested neat undercut style. Low maintenance styling preference.',
-        hairProfileNotes: 'Hates heavy hair gel products.'
-      },
-      {
-        name: 'Elara Vance',
-        phone: '016-777-8899',
-        visits: 28,
-        spend: 5400.00,
-        points: 1250,
-        birthday: '1988-11-04',
-        registeredAt: '2023-06-01',
-        customerCategory: 'Existing',
-        acquisitionSource: 'Friend Referral',
-        stylistNotes: 'VIP styling privileges. Performs keratin treatment twice a year.',
-        hairProfileNotes: 'Treatment History: Scalp therapy session completed Dec 2025.'
-      },
-      {
-        name: 'Chloe Song',
-        phone: '019-222-1100',
-        visits: 8,
-        spend: 1200.00,
-        points: 620,
-        birthday: '1994-07-02',
-        registeredAt: '2024-11-20',
-        customerCategory: 'Existing',
-        acquisitionSource: 'XiaoHongShu',
-        stylistNotes: 'Prefers ammonia-free dye. Likes cold blow dry style.',
-        hairProfileNotes: 'Allergy: Slight scalp irritation with high volume peroxide.'
-      },
-      {
-        name: 'Ryan Goh',
-        phone: '017-333-4455',
-        visits: 1,
-        spend: 150.00,
-        points: 15,
-        registeredAt: '2026-06-30',
-        customerCategory: 'New',
-        acquisitionSource: 'Walk-In',
-        stylistNotes: 'First-time visit. Walked in for a casual summer cut.'
-      }
-    ];
-  });
+  const [existingClients, setExistingClients] = useState<ClientRecord[]>(() => readLocalState('clients'));
 
   // Employees list state
-  const [employees, setEmployees] = useState<Employee[]>(() => {
-    const cached = localStorage.getItem('nova_employees');
-    if (cached) {
-      try {
-        const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed)) {
-          return parsed.filter(emp => !['emp_1', 'emp_2', 'emp_3', 'emp_4'].includes(emp.id));
-        }
-      } catch (e) {
-        // ignore
-      }
-    }
-    return [];
-  });
+  const [employees, setEmployees] = useState<Employee[]>(() => sanitizeEmployees(readLocalState('employees')));
 
   // Dynamically computed or initialized stylists list
-  const [stylists, setStylists] = useState<Stylist[]>(() => {
-    let currentEmployees: Employee[] = [];
-    const cached = localStorage.getItem('nova_employees');
-    if (cached) {
-      try {
-        const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed)) {
-          currentEmployees = parsed.filter(emp => !['emp_1', 'emp_2', 'emp_3', 'emp_4'].includes(emp.id));
-        }
-      } catch (e) {
-        // ignore
-      }
-    }
-    return currentEmployees.map(emp => {
-      const existing = INITIAL_STYLISTS.find(s => s.name === emp.name);
-      return {
-        id: emp.id,
-        name: emp.name,
-        role: emp.position,
-        utilization: existing ? existing.utilization : Math.floor(Math.random() * 40) + 40
-      };
-    });
-  });
-
-  useEffect(() => {
-    localStorage.setItem('nova_employees', JSON.stringify(employees));
-  }, [employees]);
-
-  useEffect(() => {
-    localStorage.setItem('nova_clients', JSON.stringify(existingClients));
-  }, [existingClients]);
+  const [stylists, setStylists] = useState<Stylist[]>(() => stylistsFromEmployees(readLocalState('employees')));
 
   // Sync stylists list when employees change
   useEffect(() => {
@@ -177,88 +86,135 @@ export default function App() {
   }, [employees]);
 
   // POS State Engines
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [selectedStylist, setSelectedStylist] = useState<string>('Elara V.');
-  const [clientName, setClientName] = useState<string>('');
-  const [clientPhone, setClientPhone] = useState<string>('');
-  const [paymentConfig, setPaymentConfig] = useState<PaymentConfig>(() => {
-    const saved = localStorage.getItem('nova_payment_config');
-    const defaultMethods: PaymentMethodItem[] = [];
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (parsed.customMethods && Array.isArray(parsed.customMethods)) {
-          // Filter out the dummy methods to keep the state clean of dummy data
-          parsed.customMethods = parsed.customMethods.filter(
-            (m: any) => !['pay_duitnow', 'pay_tng', 'pay_cash', 'pay_card'].includes(m.id)
-          );
-        } else {
-          parsed.customMethods = defaultMethods;
-        }
-        return parsed;
-      } catch (e) {
-        // Fallback
-      }
-    }
-    return {
-      bankName: 'Maybank',
-      accountName: 'NOVA Hair Atelier',
-      accountNo: '514012345678',
-      duitNowQR: '',
-      tngQR: '',
-      customMethods: defaultMethods,
-    };
-  });
-  const [ticketIndex, setTicketIndex] = useState<number>(9021); // TX-9021
-
-  useEffect(() => {
-    localStorage.setItem('nova_payment_config', JSON.stringify(paymentConfig));
-  }, [paymentConfig]);
+  const [cart, setCart] = useState<CartItem[]>(() => readLocalState('pos').cart);
+  const [selectedStylist, setSelectedStylist] = useState<string>(() => readLocalState('pos').selectedStylist);
+  const [clientName, setClientName] = useState<string>(() => readLocalState('pos').clientName);
+  const [clientPhone, setClientPhone] = useState<string>(() => readLocalState('pos').clientPhone);
+  const [paymentConfig, setPaymentConfig] = useState<PaymentConfig>(() => sanitizePaymentConfig(readLocalState('paymentConfig')));
+  const [ticketIndex, setTicketIndex] = useState<number>(() => readLocalState('pos').ticketIndex); // TX-9021
 
   // Company profile metadata state with persistence
-  const [companyInfo, setCompanyInfo] = useState<CompanyInfo>(() => {
-    const saved = localStorage.getItem('nova_company_info');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        // Fallback
-      }
-    }
-    return {
-      name: 'NOVA Hair Atelier',
-      address: 'Lot G-12, Ground Floor, Bangsar Village, Kuala Lumpur',
-      operatingHours: '10:00 AM - 08:00 PM Daily',
-      ssmNumber: '202603123456 (AS-9988-X)',
-      contactInfo: '+60 3-2284 9021',
-      logo: '',
-      dailyHours: [
-        { day: 'Monday', isOpen: true, openTime: '10:00 AM', closeTime: '08:00 PM' },
-        { day: 'Tuesday', isOpen: true, openTime: '10:00 AM', closeTime: '08:00 PM' },
-        { day: 'Wednesday', isOpen: true, openTime: '10:00 AM', closeTime: '08:00 PM' },
-        { day: 'Thursday', isOpen: true, openTime: '10:00 AM', closeTime: '08:00 PM' },
-        { day: 'Friday', isOpen: true, openTime: '10:00 AM', closeTime: '08:00 PM' },
-        { day: 'Saturday', isOpen: true, openTime: '10:00 AM', closeTime: '08:00 PM' },
-        { day: 'Sunday', isOpen: false, openTime: '10:00 AM', closeTime: '08:00 PM' },
-      ],
-    };
-  });
-
-  useEffect(() => {
-    localStorage.setItem('nova_company_info', JSON.stringify(companyInfo));
-  }, [companyInfo]);
+  const [companyInfo, setCompanyInfo] = useState<CompanyInfo>(() => readLocalState('companyInfo'));
 
   // Settings sub-view navigation state
   const [settingsSubTab, setSettingsSubTab] = useState<'payment' | 'sku' | 'company' | 'employee'>('payment');
 
   // Navigation Drawers & Notification Center
-  const [notifications, setNotifications] = useState<string[]>([
-    'Atelier Station ST-1 online and synced successfully.',
-    'Inventory stock list verified.',
-  ]);
+  const [notifications, setNotifications] = useState<string[]>(() => readLocalState('notifications'));
+  const [sentReminders, setSentReminders] = useState<Record<string, boolean>>(() => readLocalState('sentReminders'));
+  const [reminderRules, setReminderRules] = useState<ReminderRule[]>(() => readLocalState('reminderRules'));
   const [showCheckoutModal, setShowCheckoutModal] = useState<boolean>(false);
   const [showInventoryModal, setShowInventoryModal] = useState<boolean>(false);
   const [showReportsModal, setShowReportsModal] = useState<boolean>(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadPersistedState() {
+      const remoteState = await loadSupabaseState();
+
+      if (!isMounted) {
+        return;
+      }
+
+      if (remoteState) {
+        if (remoteState.catalog) setCatalog(remoteState.catalog);
+        if (remoteState.appointments) setAppointments(remoteState.appointments);
+        if (remoteState.transactions) setTransactions(remoteState.transactions);
+        if (remoteState.clients) setExistingClients(remoteState.clients);
+        if (remoteState.employees) setEmployees(sanitizeEmployees(remoteState.employees));
+        if (remoteState.paymentConfig) setPaymentConfig(sanitizePaymentConfig(remoteState.paymentConfig));
+        if (remoteState.companyInfo) setCompanyInfo(remoteState.companyInfo);
+        if (remoteState.notifications) setNotifications(remoteState.notifications);
+        if (remoteState.sentReminders) setSentReminders(remoteState.sentReminders);
+        if (remoteState.reminderRules) setReminderRules(remoteState.reminderRules);
+        if (remoteState.pos) {
+          setCart(remoteState.pos.cart || []);
+          setSelectedStylist(remoteState.pos.selectedStylist || 'Elara V.');
+          setClientName(remoteState.pos.clientName || '');
+          setClientPhone(remoteState.pos.clientPhone || '');
+          setTicketIndex(remoteState.pos.ticketIndex || 9021);
+        }
+        setPersistenceStatus('supabase');
+      } else {
+        setPersistenceStatus('local');
+      }
+
+      setHasLoadedRemoteState(true);
+    }
+
+    loadPersistedState();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const persistState = <K extends NovaAppStateKey>(
+    key: K,
+    value: NovaAppState[K]
+  ) => {
+    writeLocalState(key, value);
+
+    if (!hasLoadedRemoteState) {
+      return;
+    }
+
+    saveSupabaseState(key, value).then((savedToSupabase) => {
+      setPersistenceStatus(savedToSupabase ? 'supabase' : 'local');
+    });
+  };
+
+  useEffect(() => {
+    persistState('catalog', catalog);
+  }, [catalog, hasLoadedRemoteState]);
+
+  useEffect(() => {
+    persistState('appointments', appointments);
+  }, [appointments, hasLoadedRemoteState]);
+
+  useEffect(() => {
+    persistState('transactions', transactions);
+  }, [transactions, hasLoadedRemoteState]);
+
+  useEffect(() => {
+    persistState('clients', existingClients);
+  }, [existingClients, hasLoadedRemoteState]);
+
+  useEffect(() => {
+    persistState('employees', sanitizeEmployees(employees));
+  }, [employees, hasLoadedRemoteState]);
+
+  useEffect(() => {
+    persistState('paymentConfig', sanitizePaymentConfig(paymentConfig));
+  }, [paymentConfig, hasLoadedRemoteState]);
+
+  useEffect(() => {
+    persistState('companyInfo', companyInfo);
+  }, [companyInfo, hasLoadedRemoteState]);
+
+  useEffect(() => {
+    const posState: PosState = {
+      cart,
+      selectedStylist,
+      clientName,
+      clientPhone,
+      ticketIndex,
+    };
+    persistState('pos', posState);
+  }, [cart, selectedStylist, clientName, clientPhone, ticketIndex, hasLoadedRemoteState]);
+
+  useEffect(() => {
+    persistState('notifications', notifications);
+  }, [notifications, hasLoadedRemoteState]);
+
+  useEffect(() => {
+    persistState('sentReminders', sentReminders);
+  }, [sentReminders, hasLoadedRemoteState]);
+
+  useEffect(() => {
+    persistState('reminderRules', reminderRules);
+  }, [reminderRules, hasLoadedRemoteState]);
 
   // Auto-sync search queries to avoid stale inputs
   useEffect(() => {
@@ -478,7 +434,7 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-nova-beige text-nova-choco select-none font-sans">
+    <div className="flex h-[100dvh] min-h-[100dvh] overflow-hidden bg-nova-beige font-sans text-nova-choco select-none">
       
       {/* Sidebar Navigation */}
       <Sidebar
@@ -497,7 +453,7 @@ export default function App() {
       />
 
       {/* Main Content Area */}
-      <div className="ml-64 w-[calc(100%-16rem)] h-full flex flex-col relative">
+      <div className="relative ml-0 flex h-full w-full flex-col md:ml-64 md:w-[calc(100%-16rem)]">
         
         {/* Top Header Navbar */}
         <Header
@@ -519,7 +475,7 @@ export default function App() {
         />
 
         {/* Dynamic Views Container */}
-        <main className="pt-24 px-10 pb-10 overflow-y-auto h-full w-full">
+        <main className="h-full w-full overflow-x-hidden overflow-y-auto px-4 pb-24 pt-20 sm:px-6 md:px-8 md:pb-10 md:pt-24 lg:px-10">
           <AnimatePresence mode="wait">
             {activeTab === 'pos' && (
               <motion.div
@@ -582,6 +538,8 @@ export default function App() {
                   onDeleteAppointment={handleDeleteAppointment}
                   stylists={stylists}
                   catalog={catalog}
+                  sentReminders={sentReminders}
+                  onUpdateSentReminders={setSentReminders}
                 />
               </motion.div>
             )}
@@ -602,6 +560,7 @@ export default function App() {
                   onBookForClient={handleBookForClient}
                   transactions={transactions}
                   setExistingClients={setExistingClients}
+                  reminderRules={reminderRules}
                 />
               </motion.div>
             )}
@@ -627,6 +586,7 @@ export default function App() {
                   onUpdateEmployees={setEmployees}
                   initialSubTab={settingsSubTab}
                   onSubTabChange={setSettingsSubTab}
+                  persistenceStatus={persistenceStatus}
                 />
               </motion.div>
             )}
@@ -657,6 +617,22 @@ export default function App() {
         isOpen={showReportsModal}
         onClose={() => setShowReportsModal(false)}
         transactions={transactions}
+      />
+
+      <MobileNav
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        onNewAppointmentClick={() => {
+          setActiveTab('appointments');
+          setNotifications((prev) => [
+            'Opened scheduler booking card workspace.',
+            ...prev,
+          ]);
+        }}
+        settingsSubTab={settingsSubTab}
+        onSelectSettingsSubTab={setSettingsSubTab}
+        onOpenInventory={() => setShowInventoryModal(true)}
+        onOpenReports={() => setShowReportsModal(true)}
       />
     </div>
   );

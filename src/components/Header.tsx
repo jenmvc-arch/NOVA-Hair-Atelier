@@ -66,22 +66,22 @@ export default function Header({
   };
 
   return (
-    <header className="fixed top-0 right-0 w-[calc(100%-16rem)] h-20 bg-white/80 backdrop-blur-md flex justify-between items-center px-8 z-30 border-b border-nova-sand/10">
+    <header className="fixed left-0 right-0 top-0 z-30 flex h-16 items-center justify-between border-b border-nova-sand/10 bg-white/90 px-3 backdrop-blur-md sm:px-5 md:left-64 md:h-20 md:px-8">
       {/* Search Input Section */}
-      <div className="flex items-center gap-6 flex-grow max-w-md">
-        <div className="relative w-full">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-nova-choco/50 stroke-[2.2px]" />
+      <div className="flex min-w-0 flex-1 items-center gap-2 md:max-w-md md:gap-6">
+        <div className="relative w-full min-w-0">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-nova-choco/50 stroke-[2.2px] md:left-4 md:h-4.5 md:w-4.5" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-11 pr-5 py-2.5 rounded-full border border-nova-sand/30 bg-white text-nova-choco placeholder-nova-choco/40 text-sm font-sans focus:outline-none focus:border-nova-choco focus:ring-2 focus:ring-nova-sand/20 transition-all duration-200"
+            className="min-h-11 w-full rounded-full border border-nova-sand/30 bg-white pl-9 pr-4 font-sans text-base text-nova-choco placeholder-nova-choco/40 transition-all duration-200 focus:border-nova-choco focus:outline-none focus:ring-2 focus:ring-nova-sand/20 md:pl-11 md:pr-5 md:text-sm"
             placeholder={getSearchPlaceholder()}
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-nova-choco/40 hover:text-nova-choco text-xs font-semibold font-sans bg-nova-beige/40 px-2 py-0.5 rounded-full"
+              className="absolute right-2 top-1/2 min-h-8 -translate-y-1/2 rounded-full bg-nova-beige/40 px-2 text-xs font-semibold text-nova-choco/40 hover:text-nova-choco md:right-4"
             >
               Clear
             </button>
@@ -90,14 +90,14 @@ export default function Header({
       </div>
 
       {/* Navigation & Toolbar */}
-      <div className="flex items-center gap-8">
+      <div className="flex shrink-0 items-center gap-1.5 sm:gap-3 md:gap-8">
         {/* Real-time Kuala Lumpur Clock (GMT+8) */}
-        <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-nova-beige/40 border border-nova-sand/15 text-nova-choco/80 font-mono text-xs select-none">
+        <div className="hidden select-none items-center gap-2 rounded-full border border-nova-sand/15 bg-nova-beige/40 px-3.5 py-1.5 font-mono text-xs text-nova-choco/80 lg:flex">
           <Clock className="w-3.5 h-3.5 text-nova-sand stroke-[2.2px] animate-pulse" />
           <span className="font-bold tracking-wide">Kuala Lumpur: {klTime}</span>
         </div>
 
-        <nav className="flex gap-7">
+        <nav className="hidden gap-7 lg:flex">
           <button
             onClick={onOpenInventory}
             className="font-sans text-sm font-semibold text-nova-choco/75 hover:text-nova-sand transition-colors cursor-pointer"
@@ -112,11 +112,12 @@ export default function Header({
           </button>
         </nav>
 
-        <div className="flex items-center gap-5 border-l border-nova-sand/25 pl-7 relative">
+        <div className="relative flex items-center gap-1 border-l border-nova-sand/25 pl-1 sm:gap-3 sm:pl-3 md:gap-5 md:pl-7">
           {/* Notifications Log Toggle */}
           <button
             onClick={() => setShowNotifications(!showNotifications)}
-            className="text-nova-choco hover:text-nova-sand transition-colors p-1.5 hover:bg-nova-beige/30 rounded-full relative"
+            className="relative flex min-h-11 min-w-11 items-center justify-center rounded-full p-1.5 text-nova-choco transition-colors hover:bg-nova-beige/30 hover:text-nova-sand"
+            aria-label="Open notifications"
           >
             <Bell className="w-5 h-5 stroke-[2.2px]" />
             {notifications.length > 0 && (
@@ -128,7 +129,7 @@ export default function Header({
 
           {/* Notifications Dropdown Drawer */}
           {showNotifications && (
-            <div className="absolute right-36 top-12 w-80 bg-white rounded-2xl shadow-xl border border-nova-sand/20 p-4 z-50">
+            <div className="absolute right-0 top-14 z-50 w-[calc(100vw-1.5rem)] max-w-80 rounded-2xl border border-nova-sand/20 bg-white p-4 shadow-xl sm:right-12 md:right-36 md:top-12">
               <div className="flex justify-between items-center mb-3 border-b border-nova-sand/10 pb-2">
                 <span className="font-serif font-bold text-sm text-nova-choco">Notifications</span>
                 {notifications.length > 0 && (
@@ -163,17 +164,18 @@ export default function Header({
           )}
 
           {/* User Profile */}
-          <button className="text-nova-choco hover:text-nova-sand transition-colors p-1.5 hover:bg-nova-beige/30 rounded-full">
+          <button className="hidden min-h-11 min-w-11 items-center justify-center rounded-full p-1.5 text-nova-choco transition-colors hover:bg-nova-beige/30 hover:text-nova-sand sm:flex" aria-label="Open user profile">
             <User className="w-5 h-5 stroke-[2.2px]" />
           </button>
 
           {/* Checkout CTA Button */}
           <button
             onClick={onCheckoutClick}
-            className="bg-nova-choco text-white px-5 py-2.5 rounded-full text-xs font-bold font-sans tracking-wider uppercase hover:bg-nova-choco/90 transition-all hover:scale-[1.03] active:scale-[0.97] shadow-sm flex items-center gap-2"
+            className="flex min-h-11 items-center gap-1.5 rounded-full bg-nova-choco px-3 text-xs font-bold uppercase tracking-wider text-white shadow-sm transition-all hover:scale-[1.03] hover:bg-nova-choco/90 active:scale-[0.97] sm:gap-2 sm:px-4 md:px-5"
+            aria-label="Open checkout"
           >
             <ShoppingBag className="w-4 h-4 stroke-[2.5px]" />
-            <span>Checkout</span>
+            <span className="hidden sm:inline">Checkout</span>
             {cartItemCount > 0 && (
               <span className="bg-nova-sand text-nova-choco px-2 py-0.5 rounded-full text-[10px] font-extrabold ml-1 animate-pulse">
                 {cartItemCount}

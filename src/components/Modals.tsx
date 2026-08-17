@@ -440,8 +440,8 @@ export function CheckoutModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-nova-choco/40 backdrop-blur-md flex items-center justify-center z-50 p-4 font-sans">
-      <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-nova-sand/20 relative overflow-hidden animate-scale-up">
+    <div className="fixed inset-0 bg-nova-choco/40 backdrop-blur-md flex items-center justify-center z-50 p-3 sm:p-4 font-sans">
+      <div className="bg-white rounded-3xl max-w-lg w-full max-h-[calc(100dvh-1.5rem)] overflow-y-auto p-4 shadow-2xl border border-nova-sand/20 relative animate-scale-up sm:max-h-[calc(100dvh-2rem)] sm:p-6">
         {/* Close Button */}
         {!isProcessing && !isSuccess && (
           <button
@@ -552,7 +552,7 @@ export function CheckoutModal({
             </div>
 
             {/* Action Buttons Panel */}
-            <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <button
                 type="button"
                 onClick={handlePrintReceipt}
@@ -608,7 +608,7 @@ export function CheckoutModal({
               <label className="block text-[11px] font-bold mb-2.5 text-nova-choco/70 uppercase tracking-wide">
                 Select Payment Channel
               </label>
-              <div className="grid grid-cols-3 gap-2 font-sans text-xs font-bold">
+              <div className="grid grid-cols-2 gap-2 font-sans text-xs font-bold sm:grid-cols-3">
                 {(enabledMethods.length > 0 ? enabledMethods : [
                   { id: 'pay_duitnow', name: 'DuitNow QR', isEnabled: true },
                   { id: 'pay_tng', name: 'Touch & GO QR', isEnabled: true },
@@ -843,8 +843,8 @@ export function InventoryModal({ isOpen, onClose, catalog }: InventoryModalProps
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-nova-choco/40 backdrop-blur-md flex items-center justify-center z-50 p-4 font-sans">
-      <div className="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-nova-sand/20 relative flex flex-col max-h-[500px]">
+    <div className="fixed inset-0 bg-nova-choco/40 backdrop-blur-md flex items-center justify-center z-50 p-3 sm:p-4 font-sans">
+      <div className="bg-white rounded-3xl max-w-2xl w-full p-4 shadow-2xl border border-nova-sand/20 relative flex flex-col max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-2rem)] sm:p-6">
         <button
           onClick={onClose}
           className="absolute right-4 top-4 text-nova-choco/60 hover:text-nova-choco hover:bg-nova-beige/30 p-1.5 rounded-full transition-all"
@@ -858,7 +858,8 @@ export function InventoryModal({ isOpen, onClose, catalog }: InventoryModalProps
         </h3>
 
         <div className="overflow-y-auto pr-1 flex-grow">
-          <table className="w-full text-left border-collapse font-sans text-xs">
+          <div className="hidden overflow-x-auto md:block">
+            <table className="w-full min-w-[560px] text-left border-collapse font-sans text-xs">
             <thead>
               <tr className="border-b border-nova-sand/15 text-nova-choco/50 uppercase tracking-wider font-extrabold">
                 <th className="py-2.5 px-3">Name</th>
@@ -892,7 +893,39 @@ export function InventoryModal({ isOpen, onClose, catalog }: InventoryModalProps
                 </tr>
               ))}
             </tbody>
-          </table>
+            </table>
+          </div>
+          <div className="space-y-2.5 md:hidden">
+            {catalog.map((item, idx) => (
+              <article key={item.id || idx} className="rounded-2xl border border-nova-sand/15 bg-nova-light/30 p-3.5">
+                <div className="flex items-center gap-3">
+                  {item.image ? (
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="h-11 w-11 shrink-0 rounded-xl border border-nova-sand/15 object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-nova-sand/15 text-[10px] font-bold text-nova-choco/50">
+                      {item.category === 'Services' ? 'Srv' : 'Rtl'}
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <h4 className="truncate text-sm font-bold text-nova-choco">{item.name}</h4>
+                    <span className="mt-1 inline-flex rounded-full bg-nova-sand/20 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-nova-choco/75">
+                      {item.category}
+                    </span>
+                  </div>
+                  <span className="shrink-0 font-mono text-sm font-bold text-nova-choco">
+                    RM {item.price.toFixed(2)}
+                  </span>
+                </div>
+              </article>
+            ))}
+            {catalog.length === 0 && (
+              <p className="py-8 text-center text-xs text-nova-choco/45">No catalog items available.</p>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -1166,8 +1199,8 @@ export function ReportsModal({ isOpen, onClose, transactions }: ReportsModalProp
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-nova-choco/40 backdrop-blur-md flex items-center justify-center z-50 p-4 font-sans">
-      <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-nova-sand/20 relative flex flex-col max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-nova-choco/40 backdrop-blur-md flex items-center justify-center z-50 p-3 sm:p-4 font-sans">
+      <div className="bg-white rounded-3xl max-w-lg w-full p-4 shadow-2xl border border-nova-sand/20 relative flex flex-col max-h-[calc(100dvh-1.5rem)] overflow-y-auto sm:max-h-[calc(100dvh-2rem)] sm:p-6">
         <button
           onClick={onClose}
           className="absolute right-4 top-4 text-nova-choco/60 hover:text-nova-choco hover:bg-nova-beige/30 p-1.5 rounded-full transition-all"
@@ -1208,7 +1241,7 @@ export function ReportsModal({ isOpen, onClose, transactions }: ReportsModalProp
             <label className="block text-[9px] font-extrabold mb-1.5 text-nova-choco/60 uppercase tracking-wider">
               Date Filter Period
             </label>
-            <div className="grid grid-cols-5 gap-1 p-1 bg-white/80 rounded-xl border border-nova-sand/15">
+            <div className="grid grid-cols-3 gap-1 p-1 bg-white/80 rounded-xl border border-nova-sand/15 sm:grid-cols-5">
               {(['All', 'Daily', 'Weekly', 'Monthly', 'Custom'] as const).map((preset) => (
                 <button
                   key={preset}
@@ -1245,7 +1278,7 @@ export function ReportsModal({ isOpen, onClose, transactions }: ReportsModalProp
           )}
 
           {timeFilter === 'Custom' && (
-            <div className="grid grid-cols-2 gap-3 animate-fade-in">
+            <div className="grid grid-cols-1 gap-3 animate-fade-in sm:grid-cols-2">
               <div>
                 <label className="block text-[9px] font-extrabold mb-1 text-nova-choco/60 uppercase tracking-wider">
                   Start Date
@@ -1272,7 +1305,7 @@ export function ReportsModal({ isOpen, onClose, transactions }: ReportsModalProp
           )}
 
           {/* Service Category & Stylist selects */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <label className="block text-[9px] font-extrabold mb-1 text-nova-choco/60 uppercase tracking-wider">
                 Service/Product Type
@@ -1312,7 +1345,7 @@ export function ReportsModal({ isOpen, onClose, transactions }: ReportsModalProp
             Summary Accounting Ledger ({filteredTransactions.length} Match{filteredTransactions.length === 1 ? '' : 'es'})
           </p>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
             <div className="bg-nova-light rounded-2xl p-4 border border-nova-sand/15">
               <span className="text-[10px] font-bold text-nova-choco/40 uppercase block tracking-wider">Gross Salon Revenue</span>
               <span className="font-serif text-lg font-black text-nova-choco block font-mono mt-1">
@@ -1345,7 +1378,7 @@ export function ReportsModal({ isOpen, onClose, transactions }: ReportsModalProp
           {/* Export Actions Panel */}
           <div className="mt-4 pt-3 border-t border-nova-sand/15">
             <p className="text-[10px] font-extrabold text-nova-choco/40 uppercase block tracking-wider mb-2 text-center">Export Ledger Data</p>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
               <button
                 onClick={handleExportCSV}
                 className="bg-nova-light hover:bg-nova-sand/20 border border-nova-sand/30 text-nova-choco py-2 px-3 rounded-xl font-bold text-[11px] tracking-wide flex items-center justify-center gap-1.5 transition-all duration-200 cursor-pointer animate-pulse-subtle"

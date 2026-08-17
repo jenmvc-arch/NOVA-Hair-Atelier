@@ -104,3 +104,35 @@ export interface ClientRecord {
   stylistNotes?: string;
   hairProfileNotes?: string;
 }
+
+export interface ReminderRule {
+  id: string;
+  category: string;
+  timeline: string;
+  purpose: string;
+  message: string;
+}
+
+export interface PosState {
+  cart: CartItem[];
+  selectedStylist: string;
+  clientName: string;
+  clientPhone: string;
+  ticketIndex: number;
+}
+
+export interface NovaAppState {
+  catalog: CatalogItem[];
+  appointments: Appointment[];
+  transactions: Transaction[];
+  clients: ClientRecord[];
+  employees: Employee[];
+  paymentConfig: PaymentConfig;
+  companyInfo: CompanyInfo;
+  pos: PosState;
+  notifications: string[];
+  sentReminders: Record<string, boolean>;
+  reminderRules: ReminderRule[];
+}
+
+export type NovaAppStateKey = keyof NovaAppState;

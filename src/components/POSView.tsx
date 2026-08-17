@@ -115,10 +115,10 @@ export default function POSView({
   ];
 
   return (
-    <section className="h-full flex gap-8 animate-fade-in font-sans">
+    <section className="flex h-full flex-col gap-5 font-sans animate-fade-in md:gap-8 xl:flex-row">
       {/* Left: Ticket/Cart */}
-      <div className="w-1/3 flex flex-col min-h-[500px]">
-        <div className="bg-white rounded-3xl p-6 flex-grow flex flex-col shadow-sm border border-nova-sand/15 relative overflow-hidden">
+      <div className="flex min-h-0 w-full flex-col xl:min-h-[500px] xl:w-1/3">
+        <div className="relative flex flex-grow flex-col overflow-hidden rounded-3xl border border-nova-sand/15 bg-white p-4 shadow-sm md:p-6">
           {/* Decorative absolute blur */}
           <div className="absolute -top-10 -right-10 w-32 h-32 bg-nova-sand rounded-full blur-3xl opacity-20 pointer-events-none"></div>
 
@@ -130,7 +130,7 @@ export default function POSView({
           </div>
 
           {/* Cart Items Container */}
-          <div className="flex-grow overflow-y-auto pr-1 space-y-4 max-h-[400px]">
+          <div className="max-h-72 flex-grow space-y-4 overflow-y-auto pr-1 md:max-h-[400px]">
             {cart.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center text-nova-choco/40 py-16">
                 <Tag className="w-8 h-8 text-nova-sand/50 stroke-[1.5px] mb-2" />
@@ -158,7 +158,7 @@ export default function POSView({
                     <p className="text-sm font-bold text-nova-choco font-mono">RM {item.price.toFixed(2)}</p>
                     <button
                       onClick={() => onRemoveFromCart(item.id)}
-                      className="text-red-500 hover:text-red-600 transition-colors p-1 mt-1 opacity-0 group-hover:opacity-100 focus:opacity-100"
+                      className="mt-1 min-h-10 min-w-10 p-2 text-red-500 opacity-100 transition-colors hover:text-red-600 sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100"
                       title="Remove Item"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -181,7 +181,7 @@ export default function POSView({
             <button
               onClick={onCheckout}
               disabled={cart.length === 0}
-              className="w-full bg-nova-choco text-white py-4 rounded-full font-bold text-sm tracking-wide hover:bg-nova-choco/95 transition-all duration-200 shadow-md flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 hover:scale-[1.01] active:scale-[0.99]"
+              className="flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-nova-choco py-4 text-sm font-bold tracking-wide text-white shadow-md transition-all duration-200 hover:scale-[1.01] hover:bg-nova-choco/95 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
             >
               <CreditCard className="w-4.5 h-4.5 stroke-[2.2px]" />
               <span>Complete Payment</span>
@@ -191,14 +191,14 @@ export default function POSView({
       </div>
 
       {/* Right: Inputs & Catalog */}
-      <div className="w-2/3 flex flex-col gap-6">
+      <div className="flex w-full flex-col gap-5 xl:w-2/3 md:gap-6">
         {/* Client Details Card */}
-        <div className="bg-white rounded-3xl p-6 shadow-sm border border-nova-sand/15 relative">
+        <div className="relative rounded-3xl border border-nova-sand/15 bg-white p-4 shadow-sm md:p-6">
           <h3 className="font-serif text-lg font-semibold mb-4 text-nova-choco flex items-center gap-2">
             <Sparkles className="w-4.5 h-4.5 text-nova-sand" />
             <span>Client Details</span>
           </h3>
-          <div className="grid grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-5">
             <div className="relative">
               <label className="block text-xs font-bold mb-2 text-nova-choco/80 tracking-wide uppercase">Name</label>
               <input
@@ -210,7 +210,7 @@ export default function POSView({
                   setClientName(e.target.value);
                   setShowClientSuggestions(true);
                 }}
-                className="w-full px-4 py-3 rounded-full border border-nova-sand/30 text-sm font-sans text-nova-choco bg-nova-light/45 focus:outline-none focus:border-nova-choco focus:bg-white focus:ring-2 focus:ring-nova-sand/20 transition-all duration-200"
+                className="min-h-12 w-full rounded-full border border-nova-sand/30 bg-nova-light/45 px-4 py-3 font-sans text-base text-nova-choco transition-all duration-200 focus:border-nova-choco focus:bg-white focus:outline-none focus:ring-2 focus:ring-nova-sand/20 sm:text-sm"
                 placeholder="Walk-in or Search..."
               />
               {showClientSuggestions && clientSuggestions.length > 0 && (
@@ -238,7 +238,7 @@ export default function POSView({
                 type="tel"
                 value={clientPhone}
                 onChange={(e) => setClientPhone(e.target.value)}
-                className="w-full px-4 py-3 rounded-full border border-nova-sand/30 text-sm font-sans text-nova-choco bg-nova-light/45 focus:outline-none focus:border-nova-choco focus:bg-white focus:ring-2 focus:ring-nova-sand/20 transition-all duration-200"
+                className="min-h-12 w-full rounded-full border border-nova-sand/30 bg-nova-light/45 px-4 py-3 font-sans text-base text-nova-choco transition-all duration-200 focus:border-nova-choco focus:bg-white focus:outline-none focus:ring-2 focus:ring-nova-sand/20 sm:text-sm"
                 placeholder="(555) 000-0000"
               />
             </div>
@@ -275,14 +275,14 @@ export default function POSView({
         </div>
 
         {/* Catalog Selection and Add Item Area */}
-        <div className="bg-white rounded-3xl p-6 shadow-sm border border-nova-sand/15 flex-grow flex flex-col min-h-[400px]">
-          <div className="flex justify-between items-center mb-6">
+        <div className="flex min-h-[360px] flex-grow flex-col rounded-3xl border border-nova-sand/15 bg-white p-4 shadow-sm md:min-h-[400px] md:p-6">
+          <div className="mb-5 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center md:mb-6">
             <h3 className="font-serif text-lg font-semibold text-nova-choco">Add Service or Retail</h3>
             {/* Tab switchers */}
-            <div className="flex bg-nova-light rounded-full p-1 border border-nova-sand/20 shadow-inner">
+            <div className="flex w-full rounded-full border border-nova-sand/20 bg-nova-light p-1 shadow-inner sm:w-auto">
               <button
                 onClick={() => setCatalogTab('Services')}
-                className={`px-5 py-1.5 rounded-full text-xs font-bold transition-all duration-300 ${
+                className={`min-h-10 flex-1 rounded-full px-5 py-1.5 text-xs font-bold transition-all duration-300 sm:flex-none ${
                   catalogTab === 'Services'
                     ? 'bg-nova-sand text-nova-choco shadow-sm'
                     : 'text-nova-choco/60 hover:text-nova-choco'
@@ -292,7 +292,7 @@ export default function POSView({
               </button>
               <button
                 onClick={() => setCatalogTab('Retail')}
-                className={`px-5 py-1.5 rounded-full text-xs font-bold transition-all duration-300 ${
+                className={`min-h-10 flex-1 rounded-full px-5 py-1.5 text-xs font-bold transition-all duration-300 sm:flex-none ${
                   catalogTab === 'Retail'
                     ? 'bg-nova-sand text-nova-choco shadow-sm'
                     : 'text-nova-choco/60 hover:text-nova-choco'
@@ -303,13 +303,13 @@ export default function POSView({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-5 mb-6">
+          <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2 md:mb-6 md:gap-5">
             <div>
               <label className="block text-xs font-bold mb-2 text-nova-choco/80 tracking-wide uppercase">Stylist</label>
               <select
                 value={selectedStylist}
                 onChange={(e) => setSelectedStylist(e.target.value)}
-                className="w-full px-4 py-3 rounded-full border border-nova-sand/30 text-sm font-sans text-nova-choco bg-white focus:outline-none focus:border-nova-choco focus:ring-2 focus:ring-nova-sand/20 transition-all duration-200"
+                className="min-h-12 w-full rounded-full border border-nova-sand/30 bg-white px-4 py-3 font-sans text-base text-nova-choco transition-all duration-200 focus:border-nova-choco focus:outline-none focus:ring-2 focus:ring-nova-sand/20 sm:text-sm"
               >
                 {stylists.map((st) => (
                   <option key={st.id} value={st.name}>
@@ -327,12 +327,12 @@ export default function POSView({
                   type="text"
                   value={skuSearch}
                   onChange={(e) => setSkuSearch(e.target.value)}
-                  className="w-full px-4 pl-4 pr-11 py-3 rounded-full border border-nova-sand/30 text-sm font-sans text-nova-choco bg-nova-light/45 focus:outline-none focus:border-nova-choco focus:bg-white focus:ring-2 focus:ring-nova-sand/20 transition-all duration-200"
+                  className="min-h-12 w-full rounded-full border border-nova-sand/30 bg-nova-light/45 py-3 pl-4 pr-11 font-sans text-base text-nova-choco transition-all duration-200 focus:border-nova-choco focus:bg-white focus:outline-none focus:ring-2 focus:ring-nova-sand/20 sm:text-sm"
                   placeholder="e.g. 'Haircut', 'Olaplex'"
                 />
                 <button
                   type="submit"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-nova-sand hover:bg-nova-sand/90 text-nova-choco w-8 h-8 rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all duration-200 shadow-sm"
+                  className="absolute right-1.5 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-nova-sand text-nova-choco shadow-sm transition-all duration-200 hover:scale-105 hover:bg-nova-sand/90 active:scale-95"
                   title="Add item"
                 >
                   <Plus className="w-4 h-4 stroke-[2.5px]" />
@@ -354,7 +354,7 @@ export default function POSView({
                       No catalog items match. Press '+' to add as custom item for RM 50.00.
                     </div>
                   ) : (
-                    <div className="grid grid-cols-2 gap-3 pb-2">
+                    <div className="grid grid-cols-1 gap-3 pb-2 sm:grid-cols-2">
                       {filteredCatalogItems.map((item) => (
                         <button
                           key={item.id}
@@ -383,7 +383,7 @@ export default function POSView({
                 </h4>
                 
                 <div className="flex-grow overflow-y-auto pr-1 max-h-[280px]">
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pb-2">
+                    <div className="grid grid-cols-1 gap-3 pb-2 sm:grid-cols-2 lg:grid-cols-3">
                     {catalog
                       .filter((i) => i.category === catalogTab)
                       .map((item) => (
